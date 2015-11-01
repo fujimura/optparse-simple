@@ -6,10 +6,12 @@ dependencies:
     - echo 'deb http://download.fpcomplete.com/ubuntu/precise stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
     - sudo apt-get update && sudo apt-get install stack -y
   override:
-    - stack setup
-    - stack build
-    - stack build --test --only-dependencies
+    - stack build --test --only-dependencies --resolver lts-2
+    - stack build --test --only-dependencies --resolver lts-3
+    - stack build --test --only-dependencies --resolver nightly
 
 test:
   override:
-    - stack test
+    - stack test --resolver lts-2
+    - stack test --resolver lts-3
+    - stack test --resolver nightly
