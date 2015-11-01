@@ -1,18 +1,16 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Options.Applicative.Simple hiding(action)
+module Helper where
+
 import GHC.IO.Handle
 import System.IO
-import System.Environment
 import Control.Exception
 import Control.Monad
 import System.Directory
 import System.Exit
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-
-import Test.Hspec
 
 catchReturn :: Exception e => IO e -> IO e
 catchReturn io = io `catch` return
@@ -96,37 +94,3 @@ withStdIn inBS action = do
   removeIfExists stderrFile
 
   return (out, err, ExitSuccess)
-
-
-main :: IO ()
-main = hspec spec
-
-spec :: Spec
-spec = do
-  describe "simpleOptions" $ do
-    it "should work well with infoOption" $ do
-      (out,_,_) <- withStdIn ""
-        $ withArgs ["--version"]
-        $ simpleProg
-      out `shouldBe` "version\n"
-
-      (out',_,_) <- withStdIn ""
-        $ withArgs ["--summary"]
-        $ summaryProg
-      out' `shouldBe` "A program summary\n"
-
-simpleProg :: IO ()
-simpleProg = do
-  ((), ()) <- simpleOptions "version" "header" "desc" (pure ()) empty
-  return ()
-
-parserWithSummary :: Parser ()
-parserWithSummary = summaryOption <*> pure () where
-  summaryOption = infoOption "A program summary"
-    $ long "summary"
-   <> help "Show program summary"
-
-summaryProg :: IO ()
-summaryProg = do
-  ((), ()) <- simpleOptions "version" "header" "desc" parserWithSummary empty
-  return ()
