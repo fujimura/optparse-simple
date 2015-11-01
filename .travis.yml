@@ -1,19 +1,20 @@
-language: haskell
+sudo: false
+
+before_install:
+  # stack
+  - mkdir -p ~/.local/bin
+  - export PATH=~/.local/bin:$PATH
+  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
-  # Install stack
-  - travis_retry wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
-  - echo 'deb http://download.fpcomplete.com/ubuntu/precise stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
-  - travis_retry sudo apt-get update
-  - travis_retry sudo apt-get install stack -y
-  # Install dependencies
-  - stack setup
-  - stack build
-  - stack build --test --only-dependencies
+  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-2                   setup
+  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-2   --only-snapshot test
+  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-3                   setup
+  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-3   --only-snapshot test
+  - ./travis_long stack --no-terminal --skip-ghc-check --resolver nightly                 setup
+  - ./travis_long stack --no-terminal --skip-ghc-check --resolver nightly --only-snapshot test
 
 script:
-  - stack test
-
-cache:
-  directories:
-    - $HOME/.stack
+  - stack --resolver lts-2   test
+  - stack --resolver lts-3   test
+  - stack --resolver nightly test
