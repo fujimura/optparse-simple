@@ -1,0 +1,19 @@
+language: haskell
+
+install:
+  # Install stack
+  - travis_retry wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/ubuntu/fpco.key | sudo apt-key add -
+  - echo 'deb http://download.fpcomplete.com/ubuntu/precise stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
+  - travis_retry sudo apt-get update
+  - travis_retry sudo apt-get install stack -y
+  # Install dependencies
+  - stack setup
+  - stack build
+  - stack build --test --only-dependencies
+
+script:
+  - stack test
+
+cache:
+  directories:
+    - $HOME/.stack
