@@ -30,5 +30,6 @@ test-suite test
                    , optparse-simple
                    , directory -any
                    , bytestring -any
+                   , hspec >= 2.0
   hs-source-dirs:    test
   ghc-options:       -Wall -O2

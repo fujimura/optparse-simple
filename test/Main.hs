@@ -12,14 +12,7 @@ import System.Exit
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 
-
-shouldBe :: (Show a, Eq a) => a -> a -> IO ()
-shouldBe actual expected
-  | expected == actual = return ()
-  | otherwise = do
-    putStrLn $ "expected: " ++ show expected
-    putStrLn $ "actual  : " ++ show actual
-    exitFailure
+import Test.Hspec
 
 catchReturn :: Exception e => IO e -> IO e
 catchReturn io = io `catch` return
@@ -106,23 +99,21 @@ withStdIn inBS action = do
 
 
 main :: IO ()
-main = do
-  (out, err, exitCode) <- withStdIn ""
-    $ withArgs ["--version"]
-    $ simpleProg
-  exitCode `shouldBe` ExitSuccess
-  err `shouldBe` ""
-  out `shouldBe` "version\n"
+main = hspec spec
 
-  (out', err', exitCode') <- withStdIn ""
-    $ withArgs ["--summary"]
-    $ summaryProg
-  exitCode' `shouldBe` ExitSuccess
-  err' `shouldBe` ""
-  out' `shouldBe` "A program summary\n"
+spec :: Spec
+spec = do
+  describe "simpleOptions" $ do
+    it "should work well with infoOption" $ do
+      (out,_,_) <- withStdIn ""
+        $ withArgs ["--version"]
+        $ simpleProg
+      out `shouldBe` "version\n"
 
-  return ()
-
+      (out',_,_) <- withStdIn ""
+        $ withArgs ["--summary"]
+        $ summaryProg
+      out' `shouldBe` "A program summary\n"
 
 simpleProg :: IO ()
 simpleProg = do
