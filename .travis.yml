@@ -1,20 +1,42 @@
+# Based on https://github.com/commercialhaskell/stack/blob/133f858b89e6186964bc926bc91066ec561991ce/doc/GUIDE.md#travis-with-caching
+
+# Use new container infrastructure to enable caching
 sudo: false
 
+# Choose a lightweight base image; we provide our own build tools.
+language: c
+
+# GHC depends on GMP. You can add other dependencies here as well.
+addons:
+  apt:
+    packages:
+    - libgmp-dev
+
+# The different configurations we want to test. You could also do things like
+# change flags or use --stack-yaml to point to a different file.
+env:
+- ARGS=""
+- ARGS="--resolver lts-2"
+- ARGS="--resolver lts-3"
+- ARGS="--resolver lts"
+- ARGS="--resolver nightly"
+
 before_install:
-  # stack
-  - mkdir -p ~/.local/bin
-  - export PATH=~/.local/bin:$PATH
-  - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
+# Download and unpack the stack executable
+- mkdir -p ~/.local/bin
+- export PATH=$HOME/.local/bin:$PATH
+- travis_retry curl -L https://github.com/commercialhaskell/stack/releases/download/v0.1.6.0/stack-0.1.6.0-linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
 
 install:
-  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-2                   setup
-  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-2   --only-snapshot test
-  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-3                   setup
-  - ./travis_long stack --no-terminal --skip-ghc-check --resolver lts-3   --only-snapshot test
-  - ./travis_long stack --no-terminal --skip-ghc-check --resolver nightly                 setup
-  - ./travis_long stack --no-terminal --skip-ghc-check --resolver nightly --only-snapshot test
+  - stack $ARGS --no-terminal --skip-ghc-check setup
+  - stack $ARGS --no-terminal --skip-ghc-check build --test --only-dependencies
 
-script:
-  - stack --resolver lts-2   test
-  - stack --resolver lts-3   test
-  - stack --resolver nightly test
+# This line does all of the work: installs GHC if necessary, build the library,
+# executables, and test suites, and runs the test suites. --no-terminal works
+# around some quirks in Travis's terminal implementation.
+script: stack $ARGS --no-terminal test
+
+# Caching so the next build will be fast too.
+cache:
+  directories:
+  - $HOME/.stack
